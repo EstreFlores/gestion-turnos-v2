@@ -11,9 +11,11 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "date-fns": "^4.4.0",
     "next": "16.4.2",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.4",
