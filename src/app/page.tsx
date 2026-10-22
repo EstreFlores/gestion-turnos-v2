@@ -1,73 +1,51 @@
-const navigation = [
-  { id: "dashboard", label: "Dashboard" },
-  { id: "citas", label: "Citas" },
-  { id: "calendario", label: "Calendario" },
-  { id: "servicios", label: "Servicios" },
-];
+"use client";
+
+import { useEffect, useState } from "react";
+import { AppLayout } from "@/components/AppLayout";
+import { toast } from "@/components/ui/toastManager";
+import type { AppView } from "@/components/Sidebar";
+
+const viewTitles: Record<AppView, string> = {
+  dashboard: "Dashboard",
+  appointments: "Citas y turnos",
+  calendar: "Calendario",
+  services: "Servicios",
+};
 
 export default function Home() {
+  const [currentView, setCurrentView] = useState<AppView>("dashboard");
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", isDarkMode);
+  }, [isDarkMode]);
+
   return (
-    <div className="min-h-screen md:flex">
-      <aside className="border-b border-slate-200 bg-white p-6 md:min-h-screen md:w-64 md:border-b-0 md:border-r">
-        <a href="#dashboard" className="text-lg font-bold text-rose-700">
-          Glow by Estrella
-        </a>
-        <p className="mt-1 text-xs font-medium uppercase tracking-wide text-slate-500">
-          Gestión de turnos
+    <AppLayout
+      currentView={currentView}
+      onViewChange={setCurrentView}
+      isDarkMode={isDarkMode}
+      onThemeChange={() => setIsDarkMode((current) => !current)}
+      onNewAppointment={() =>
+        toast.add({
+          title: "ejemplo",
+          description: "ejeejjeje.",
+          type: "info",
+        })
+      }
+    >
+      <section
+        aria-labelledby="view-title"
+        className="rounded-2xl border bg-popover p-6 shadow-sm"
+      >
+        <p className="text-sm font-semibold text-primary">Prueba de la V2</p>
+        <h2 id="view-title" className="mt-2 text-2xl font-bold">
+          {viewTitles[currentView]}
+        </h2>
+        <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
+          kalalalallaal
         </p>
-        <nav aria-label="Navegación principal" className="mt-8 grid gap-2">
-          {navigation.map((item) => (
-            <a
-              key={item.id}
-              href={`#${item.id}`}
-              className="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-rose-50 hover:text-rose-700"
-            >
-              {item.label}
-            </a>
-          ))}
-        </nav>
-      </aside>
-
-      <main className="flex-1 p-6 md:p-10">
-        <section
-          id="dashboard"
-          aria-labelledby="dashboard-title"
-          className="mx-auto max-w-5xl rounded-2xl border border-slate-200 bg-white p-8 shadow-sm"
-        >
-          <p className="text-sm font-semibold text-rose-700">Proyecto V2</p>
-          <h1
-            id="dashboard-title"
-            className="mt-2 text-3xl font-bold text-slate-900"
-          >
-            Gestión de Turnos
-          </h1>
-          <p className="mt-3 max-w-2xl text-slate-600">
-            Base de la aplicación preparada. Las vistas del MVP se migrarán por
-            partes en los siguientes PRs.
-          </p>
-        </section>
-
-        <div className="mx-auto mt-6 grid max-w-5xl gap-4 sm:grid-cols-3">
-          {navigation.slice(1).map((item) => (
-            <section
-              key={item.id}
-              id={item.id}
-              aria-labelledby={`${item.id}-title`}
-              className="rounded-xl border border-slate-200 bg-white p-6"
-            >
-              <h2
-                id={`${item.id}-title`}
-                className="font-semibold text-slate-900"
-              >
-                {item.label}
-              </h2>
-              <p className="mt-2 text-sm text-slate-500">
-                Se agregará en su PR correspondiente.
-              </p>
-            </section>
-          ))}
-        </div>
-      </main>
-    </div>
+      </section>
+    </AppLayout>
   );
 }
