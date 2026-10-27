@@ -7,16 +7,10 @@ import { AppointmentModal } from "@/features/appointments/components/Appointment
 import { AppointmentsView } from "@/features/appointments/components/AppointmentsView";
 import { AppointmentCalendar } from "@/features/appointments/components/AppointmentCalendar";
 import { DashboardView } from "@/features/appointments/components/DashboardView";
+import { ServicesView } from "@/features/appointments/components/ServicesView";
 import { useAppointments } from "@/features/appointments/hooks/useAppointments";
 import type { Appointment } from "@/features/appointments/types/appointment";
 import type { AppView } from "@/components/Sidebar";
-
-const viewTitles: Record<AppView, string> = {
-  dashboard: "Dashboard",
-  appointments: "Citas y turnos",
-  calendar: "Calendario",
-  services: "Servicios",
-};
 
 export default function Home() {
   const {
@@ -32,8 +26,8 @@ export default function Home() {
   } = useAppointments();
   const [currentView, setCurrentView] = useState<AppView>("dashboard");
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [calendarModalOpen, setCalendarModalOpen] = useState(false);
-  const [calendarAppointmentToEdit, setCalendarAppointmentToEdit] =
+  const [appointmentModalOpen, setAppointmentModalOpen] = useState(false);
+  const [appointmentToEdit, setAppointmentToEdit] =
     useState<Appointment | null>(null);
 
   useEffect(() => {
@@ -46,6 +40,21 @@ export default function Home() {
       description: error.message,
       type: "error",
     });
+  };
+
+  const openNewAppointment = () => {
+    setAppointmentToEdit(null);
+    setAppointmentModalOpen(true);
+  };
+
+  const openAppointmentToEdit = (appointment: Appointment) => {
+    setAppointmentToEdit(appointment);
+    setAppointmentModalOpen(true);
+  };
+
+  const closeAppointmentModal = () => {
+    setAppointmentModalOpen(false);
+    setAppointmentToEdit(null);
   };
 
   const handleCreate = (appointment: Appointment) => {
@@ -101,7 +110,7 @@ export default function Home() {
       onViewChange={setCurrentView}
       isDarkMode={isDarkMode}
       onThemeChange={() => setIsDarkMode((current) => !current)}
-      onNewAppointment={() => setCurrentView("appointments")}
+      onNewAppointment={openNewAppointment}
     >
       {currentView === "dashboard" ? (
         <DashboardView
@@ -117,11 +126,10 @@ export default function Home() {
           services={services}
           loading={loading}
           error={appointmentsError ?? servicesError}
-          savingAppointment={create.isPending || update.isPending}
           updatingStatus={updateStatus.isPending}
           onRetry={retry}
-          onCreate={handleCreate}
-          onUpdate={handleUpdate}
+          onNewAppointment={openNewAppointment}
+          onEditAppointment={openAppointmentToEdit}
           onStatusChange={handleStatusChange}
         />
       ) : currentView === "calendar" ? (
@@ -131,42 +139,30 @@ export default function Home() {
           loading={loading}
           error={appointmentsError ?? servicesError}
           onRetry={retry}
-          onNewAppointment={() => {
-            setCalendarAppointmentToEdit(null);
-            setCalendarModalOpen(true);
-          }}
-          onSelectAppointment={(appointment) => {
-            setCalendarAppointmentToEdit(appointment);
-            setCalendarModalOpen(true);
-          }}
+          onNewAppointment={openNewAppointment}
+          onSelectAppointment={openAppointmentToEdit}
         />
       ) : (
-        <section className="rounded-2xl border bg-popover p-6 shadow-sm">
-          <h2 className="text-xl font-bold">{viewTitles[currentView]}</h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            llllllllllllllllllllllllll
-          </p>
-        </section>
-      )}
-      {currentView === "calendar" && (
-        <AppointmentModal
-          open={calendarModalOpen}
-          appointment={calendarAppointmentToEdit}
+        <ServicesView
           services={services}
-          existingAppointments={appointments}
-          saving={create.isPending || update.isPending}
-          onClose={() => {
-            setCalendarModalOpen(false);
-            setCalendarAppointmentToEdit(null);
-          }}
-          onSave={(appointment) => {
-            if (calendarAppointmentToEdit) handleUpdate(appointment);
-            else handleCreate(appointment);
-            setCalendarModalOpen(false);
-            setCalendarAppointmentToEdit(null);
-          }}
+          loading={loading}
+          error={servicesError}
+          onRetry={retry}
         />
       )}
+      <AppointmentModal
+        open={appointmentModalOpen}
+        appointment={appointmentToEdit}
+        services={services}
+        existingAppointments={appointments}
+        saving={create.isPending || update.isPending}
+        onClose={closeAppointmentModal}
+        onSave={(appointment) => {
+          if (appointmentToEdit) handleUpdate(appointment);
+          else handleCreate(appointment);
+          closeAppointmentModal();
+        }}
+      />
     </AppLayout>
   );
 }
