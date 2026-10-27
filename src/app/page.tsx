@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import { AppLayout } from "@/components/AppLayout";
 import { toast } from "@/components/ui/toastManager";
+import { AppointmentModal } from "@/features/appointments/components/AppointmentModal";
 import { AppointmentsView } from "@/features/appointments/components/AppointmentsView";
+import { AppointmentCalendar } from "@/features/appointments/components/AppointmentCalendar";
 import { DashboardView } from "@/features/appointments/components/DashboardView";
 import { useAppointments } from "@/features/appointments/hooks/useAppointments";
 import type { Appointment } from "@/features/appointments/types/appointment";
@@ -30,6 +32,9 @@ export default function Home() {
   } = useAppointments();
   const [currentView, setCurrentView] = useState<AppView>("dashboard");
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [calendarModalOpen, setCalendarModalOpen] = useState(false);
+  const [calendarAppointmentToEdit, setCalendarAppointmentToEdit] =
+    useState<Appointment | null>(null);
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", isDarkMode);
@@ -119,6 +124,22 @@ export default function Home() {
           onUpdate={handleUpdate}
           onStatusChange={handleStatusChange}
         />
+      ) : currentView === "calendar" ? (
+        <AppointmentCalendar
+          appointments={appointments}
+          services={services}
+          loading={loading}
+          error={appointmentsError ?? servicesError}
+          onRetry={retry}
+          onNewAppointment={() => {
+            setCalendarAppointmentToEdit(null);
+            setCalendarModalOpen(true);
+          }}
+          onSelectAppointment={(appointment) => {
+            setCalendarAppointmentToEdit(appointment);
+            setCalendarModalOpen(true);
+          }}
+        />
       ) : (
         <section className="rounded-2xl border bg-popover p-6 shadow-sm">
           <h2 className="text-xl font-bold">{viewTitles[currentView]}</h2>
@@ -126,6 +147,25 @@ export default function Home() {
             llllllllllllllllllllllllll
           </p>
         </section>
+      )}
+      {currentView === "calendar" && (
+        <AppointmentModal
+          open={calendarModalOpen}
+          appointment={calendarAppointmentToEdit}
+          services={services}
+          existingAppointments={appointments}
+          saving={create.isPending || update.isPending}
+          onClose={() => {
+            setCalendarModalOpen(false);
+            setCalendarAppointmentToEdit(null);
+          }}
+          onSave={(appointment) => {
+            if (calendarAppointmentToEdit) handleUpdate(appointment);
+            else handleCreate(appointment);
+            setCalendarModalOpen(false);
+            setCalendarAppointmentToEdit(null);
+          }}
+        />
       )}
     </AppLayout>
   );
