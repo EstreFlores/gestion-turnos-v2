@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useSyncExternalStore } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import {
   Dialog,
@@ -34,6 +34,10 @@ interface AppointmentModalProps {
 
 const fieldClassName =
   "mt-1 w-full rounded-xl border bg-background px-3 py-2.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20";
+
+const subscribeToToday = () => () => {};
+const getTodayDate = () => format(new Date(), "yyyy-MM-dd");
+const getServerTodayDate = () => "";
 
 export function AppointmentModal({
   open,
@@ -158,7 +162,11 @@ export function AppointmentModal({
   };
 
   const selectedServiceField = register("serviceId");
-  const minDate = format(new Date(), "yyyy-MM-dd");
+  const minDate = useSyncExternalStore(
+    subscribeToToday,
+    getTodayDate,
+    getServerTodayDate,
+  );
 
   return (
     <Dialog

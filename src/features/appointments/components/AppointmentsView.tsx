@@ -5,7 +5,6 @@ import { CalendarPlus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AppointmentTable } from "@/features/appointments/components/AppointmentTable";
-import { AppointmentModal } from "@/features/appointments/components/AppointmentModal";
 import { CancelAppointmentDialog } from "@/features/appointments/components/CancelAppointmentDialog";
 import { useAppointmentFilters } from "@/features/appointments/hooks/useAppointmentFilters";
 import type {
@@ -18,11 +17,10 @@ interface AppointmentsViewProps {
   services: Service[];
   loading: boolean;
   error?: Error | null;
-  savingAppointment: boolean;
   updatingStatus: boolean;
   onRetry: () => void;
-  onCreate: (appointment: Appointment) => void;
-  onUpdate: (appointment: Appointment) => void;
+  onNewAppointment: () => void;
+  onEditAppointment: (appointment: Appointment) => void;
   onStatusChange: (
     appointmentId: string,
     status: Appointment["status"],
@@ -37,33 +35,16 @@ export function AppointmentsView({
   services,
   loading,
   error,
-  savingAppointment,
   updatingStatus,
   onRetry,
-  onCreate,
-  onUpdate,
+  onNewAppointment,
+  onEditAppointment,
   onStatusChange,
 }: AppointmentsViewProps) {
   const filters = useAppointmentFilters(appointments);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [appointmentToEdit, setAppointmentToEdit] =
-    useState<Appointment | null>(null);
   const [appointmentToCancel, setAppointmentToCancel] =
     useState<Appointment | null>(null);
 
-  const openNewAppointment = () => {
-    setAppointmentToEdit(null);
-    setModalOpen(true);
-  };
-  const closeAppointmentModal = () => {
-    setModalOpen(false);
-    setAppointmentToEdit(null);
-  };
-  const saveAppointment = (appointment: Appointment) => {
-    if (appointmentToEdit) onUpdate(appointment);
-    else onCreate(appointment);
-    closeAppointmentModal();
-  };
   const confirmCancellation = () => {
     if (!appointmentToCancel) return;
     onStatusChange(appointmentToCancel.id, "cancelled");
@@ -116,7 +97,7 @@ export function AppointmentsView({
               Busca, filtra y administra las citas de tus clientas.
             </p>
           </div>
-          <Button type="button" onClick={openNewAppointment}>
+          <Button type="button" onClick={onNewAppointment}>
             <CalendarPlus aria-hidden="true" />
             Nueva cita
           </Button>
@@ -179,25 +160,12 @@ export function AppointmentsView({
           hasFilters={hasFilters}
           currentPage={filters.currentPage}
           totalPages={filters.totalPages}
-          onEdit={(appointment) => {
-            setAppointmentToEdit(appointment);
-            setModalOpen(true);
-          }}
+          onEdit={onEditAppointment}
           onCancel={setAppointmentToCancel}
           onStatusChange={onStatusChange}
           onPageChange={filters.setCurrentPage}
         />
       </section>
-
-      <AppointmentModal
-        open={modalOpen}
-        appointment={appointmentToEdit}
-        services={services}
-        existingAppointments={appointments}
-        saving={savingAppointment}
-        onClose={closeAppointmentModal}
-        onSave={saveAppointment}
-      />
 
       <CancelAppointmentDialog
         appointment={appointmentToCancel}

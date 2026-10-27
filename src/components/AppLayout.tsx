@@ -26,7 +26,7 @@ const viewDescriptions: Record<AppView, string> = {
   dashboard: "Aquí tienes el resumen operativo y turnos programados para hoy.",
   appointments: "Consulta y administra las citas de tus clientas.",
   calendar: "Visualiza la agenda y disponibilidad horaria por profesional.",
-  services: "Administra los servicios disponibles en el salón.",
+  services: "Consulta el catálogo de servicios disponibles en el salón.",
 };
 
 export function AppLayout({
