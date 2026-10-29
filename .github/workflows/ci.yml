@@ -2,9 +2,9 @@ name: CI
 
 on:
   pull_request:
-    branches: [ main ]
+    branches: [main]
   push:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   verify:
@@ -17,6 +17,26 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
 
-      - name: Verificar archivos
-        run: ls -la
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Ejecutar lint
+        run: npm run lint
+
+      - name: Verificar tipos
+        run: npm run typecheck
+
+      - name: Ejecutar pruebas y cobertura
+        run: npm run test:coverage
+
+      - name: Guardar reporte de cobertura
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitest-coverage
+          path: coverage/
+          if-no-files-found: error
+
+      - name: Crear build de producción
+        run: npm run build
