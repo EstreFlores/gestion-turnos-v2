@@ -15,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { PROFESSIONALS } from "@/features/appointments/data/professionals";
 import { appointmentFormSchema } from "@/features/appointments/schemas/appointmentSchema";
+import { findAppointmentOverlap } from "@/features/appointments/utils/appointmentLogic";
 import type {
   Appointment,
   AppointmentFormInput,
@@ -117,23 +118,12 @@ export function AppointmentModal({
 
   const overlapConflict = useMemo(() => {
     if (!date || !startTime || !professionalId || !durationMinutes) return null;
-    const [hours, minutes] = startTime.split(":").map(Number);
-    const start = hours * 60 + minutes;
-    const end = start + Number(durationMinutes);
-
-    return existingAppointments.find((existing) => {
-      if (existing.id === appointment?.id) return false;
-      if (existing.date !== date || existing.status === "cancelled")
-        return false;
-      if (existing.professionalId !== professionalId) return false;
-
-      const [existingHours, existingMinutes] = existing.startTime
-        .split(":")
-        .map(Number);
-      const existingStart = existingHours * 60 + existingMinutes;
-      const existingEnd = existingStart + existing.durationMinutes;
-
-      return start < existingEnd && end > existingStart;
+    return findAppointmentOverlap(existingAppointments, {
+      id: appointment?.id,
+      date,
+      startTime,
+      durationMinutes: Number(durationMinutes),
+      professionalId,
     });
   }, [
     appointment?.id,
