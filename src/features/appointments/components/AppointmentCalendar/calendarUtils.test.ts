@@ -2,8 +2,11 @@ import { describe, expect, it } from "vitest";
 import {
   changeCalendarDate,
   getMonthDays,
+  getProfessionalId,
   getTimeSlots,
+  getVisibleDateKeys,
   getWeekDays,
+  parseDateKey,
   toDateKey,
 } from "@/features/appointments/components/AppointmentCalendar/calendarUtils";
 import type { Appointment } from "@/features/appointments/types/appointment";
@@ -24,6 +27,7 @@ const appointment: Appointment = {
 describe("calendarUtils", () => {
   it("convierte fechas a claves locales ISO", () => {
     expect(toDateKey(new Date(2026, 9, 28))).toBe("2026-10-28");
+    expect(toDateKey(parseDateKey("2026-10-28"))).toBe("2026-10-28");
   });
 
   it("construye la semana empezando en lunes", () => {
@@ -47,8 +51,25 @@ describe("calendarUtils", () => {
   });
 
   it("combina los horarios estándar con horas específicas de citas", () => {
-    expect(getTimeSlots([appointment])).toContain("08:30");
-    expect(getTimeSlots([appointment])).toContain("08:00");
+    const slots = getTimeSlots([appointment]);
+
+    expect(slots).toContain("08:30");
+    expect(slots).toContain("08:00");
+    expect(slots).toEqual([...slots].toSorted());
+  });
+
+  it("obtiene las fechas visibles según el modo de calendario", () => {
+    const date = new Date(2026, 9, 28);
+
+    expect(getVisibleDateKeys("day", date)).toEqual(["2026-10-28"]);
+    expect(getVisibleDateKeys("week", date)).toHaveLength(7);
+    expect(getVisibleDateKeys("month", date)).toHaveLength(35);
+  });
+
+  it("usa una profesional por defecto si la cita no tiene identificador", () => {
+    expect(getProfessionalId({ ...appointment, professionalId: "" })).toBe(
+      "camila-santos",
+    );
   });
 
   it("avanza según el modo actual del calendario", () => {

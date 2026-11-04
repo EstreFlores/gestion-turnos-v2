@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { Appointment } from "@/features/appointments/types/appointment";
+import { filterAppointments } from "@/features/appointments/utils/appointmentLogic";
 
 export function useAppointmentFilters(appointments: Appointment[]) {
   const [searchTerm, setSearchTerm] = useState("");
@@ -12,29 +13,15 @@ export function useAppointmentFilters(appointments: Appointment[]) {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
 
-  const filteredAppointments = useMemo(() => {
-    const normalizedSearch = searchTerm.trim().toLocaleLowerCase();
-
-    return appointments
-      .filter((appointment) => {
-        const matchesSearch =
-          !normalizedSearch ||
-          appointment.clientName
-            .toLocaleLowerCase()
-            .includes(normalizedSearch) ||
-          appointment.clientPhone?.includes(normalizedSearch);
-        const matchesDate = !selectedDate || appointment.date === selectedDate;
-        const matchesStatus =
-          selectedStatus === "all" || appointment.status === selectedStatus;
-
-        return matchesSearch && matchesDate && matchesStatus;
-      })
-      .toSorted(
-        (first, second) =>
-          first.date.localeCompare(second.date) ||
-          first.startTime.localeCompare(second.startTime),
-      );
-  }, [appointments, searchTerm, selectedDate, selectedStatus]);
+  const filteredAppointments = useMemo(
+    () =>
+      filterAppointments(appointments, {
+        searchTerm,
+        selectedDate,
+        selectedStatus,
+      }),
+    [appointments, searchTerm, selectedDate, selectedStatus],
+  );
 
   const totalPages = Math.max(
     1,
