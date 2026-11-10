@@ -31,12 +31,28 @@ jobs:
       - name: Ejecutar pruebas y cobertura
         run: npm run test:coverage
 
+      - name: Instalar Chromium para Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: Ejecutar pruebas E2E
+        run: npm run test:e2e
+
       - name: Guardar reporte de cobertura
         uses: actions/upload-artifact@v4
         with:
           name: vitest-coverage
           path: coverage/
           if-no-files-found: error
+
+      - name: Guardar evidencia E2E si falla
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
 
       - name: Crear build de producción
         run: npm run build
