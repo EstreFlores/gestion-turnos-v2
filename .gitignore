@@ -39,6 +39,8 @@ yarn-error.log*
 
 # Archivos de cobertura de pruebas
 /coverage
+/playwright-report
+/test-results
 
 # Base de datos local de desarrollo / Prisma / Drizzle
 *.db
