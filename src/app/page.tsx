@@ -1,16 +1,29 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { AppLayout } from "@/components/AppLayout";
-import { toast } from "@/components/ui/toastManager";
-import { AppointmentModal } from "@/features/appointments/components/AppointmentModal";
-import { AppointmentsView } from "@/features/appointments/components/AppointmentsView";
-import { AppointmentCalendar } from "@/features/appointments/components/AppointmentCalendar";
 import { DashboardView } from "@/features/appointments/components/DashboardView";
-import { ServicesView } from "@/features/appointments/components/ServicesView";
 import { useAppointments } from "@/features/appointments/hooks/useAppointments";
 import type { Appointment } from "@/features/appointments/types/appointment";
 import type { AppView } from "@/components/Sidebar";
+
+const AppointmentWorkspace = dynamic(
+  () =>
+    import("@/features/appointments/components/AppointmentWorkspace").then(
+      (module) => module.AppointmentWorkspace,
+    ),
+  { loading: () => <ViewLoadingState /> },
+);
+
+function ViewLoadingState() {
+  return (
+    <section
+      aria-label="Cargando vista"
+      className="h-80 animate-pulse rounded-2xl bg-muted"
+    />
+  );
+}
 
 export default function Home() {
   const {
@@ -20,9 +33,6 @@ export default function Home() {
     appointmentsError,
     servicesError,
     retry,
-    create,
-    update,
-    updateStatus,
   } = useAppointments();
   const [currentView, setCurrentView] = useState<AppView>("dashboard");
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -33,14 +43,6 @@ export default function Home() {
   useEffect(() => {
     document.documentElement.classList.toggle("dark", isDarkMode);
   }, [isDarkMode]);
-
-  const notifyError = (title: string, error: Error) => {
-    toast.add({
-      title,
-      description: error.message,
-      type: "error",
-    });
-  };
 
   const openNewAppointment = () => {
     setAppointmentToEdit(null);
@@ -57,53 +59,6 @@ export default function Home() {
     setAppointmentToEdit(null);
   };
 
-  const handleCreate = (appointment: Appointment) => {
-    create.mutate(appointment, {
-      onSuccess: () =>
-        toast.add({
-          title: "Cita creada",
-          description: "La cita se registró correctamente.",
-          type: "success",
-        }),
-      onError: (error) => notifyError("No se pudo crear la cita", error),
-    });
-  };
-
-  const handleUpdate = (appointment: Appointment) => {
-    update.mutate(appointment, {
-      onSuccess: () =>
-        toast.add({
-          title: "Cita actualizada",
-          description: "Los datos se guardaron correctamente.",
-          type: "success",
-        }),
-      onError: (error) => notifyError("No se pudo actualizar la cita", error),
-    });
-  };
-
-  const handleStatusChange = (
-    appointmentId: string,
-    status: Appointment["status"],
-  ) => {
-    updateStatus.mutate(
-      { id: appointmentId, status },
-      {
-        onSuccess: () =>
-          toast.add({
-            title:
-              status === "cancelled" ? "Cita cancelada" : "Estado actualizado",
-            description:
-              status === "cancelled"
-                ? "La cita se canceló correctamente."
-                : "El estado de la cita se actualizó.",
-            type: "success",
-          }),
-        onError: (error) =>
-          notifyError("No se pudo actualizar el estado", error),
-      },
-    );
-  };
-
   return (
     <AppLayout
       currentView={currentView}
@@ -112,7 +67,7 @@ export default function Home() {
       onThemeChange={() => setIsDarkMode((current) => !current)}
       onNewAppointment={openNewAppointment}
     >
-      {currentView === "dashboard" ? (
+      {currentView === "dashboard" && (
         <DashboardView
           appointments={appointments}
           services={services}
@@ -120,49 +75,23 @@ export default function Home() {
           error={appointmentsError ?? servicesError}
           onRetry={retry}
         />
-      ) : currentView === "appointments" ? (
-        <AppointmentsView
+      )}
+      {(currentView !== "dashboard" || appointmentModalOpen) && (
+        <AppointmentWorkspace
+          currentView={currentView}
           appointments={appointments}
           services={services}
           loading={loading}
-          error={appointmentsError ?? servicesError}
-          updatingStatus={updateStatus.isPending}
-          onRetry={retry}
+          appointmentsError={appointmentsError}
+          servicesError={servicesError}
+          retry={retry}
+          appointmentModalOpen={appointmentModalOpen}
+          appointmentToEdit={appointmentToEdit}
           onNewAppointment={openNewAppointment}
           onEditAppointment={openAppointmentToEdit}
-          onStatusChange={handleStatusChange}
-        />
-      ) : currentView === "calendar" ? (
-        <AppointmentCalendar
-          appointments={appointments}
-          services={services}
-          loading={loading}
-          error={appointmentsError ?? servicesError}
-          onRetry={retry}
-          onNewAppointment={openNewAppointment}
-          onSelectAppointment={openAppointmentToEdit}
-        />
-      ) : (
-        <ServicesView
-          services={services}
-          loading={loading}
-          error={servicesError}
-          onRetry={retry}
+          onCloseAppointmentModal={closeAppointmentModal}
         />
       )}
-      <AppointmentModal
-        open={appointmentModalOpen}
-        appointment={appointmentToEdit}
-        services={services}
-        existingAppointments={appointments}
-        saving={create.isPending || update.isPending}
-        onClose={closeAppointmentModal}
-        onSave={(appointment) => {
-          if (appointmentToEdit) handleUpdate(appointment);
-          else handleCreate(appointment);
-          closeAppointmentModal();
-        }}
-      />
     </AppLayout>
   );
 }

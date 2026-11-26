@@ -12,6 +12,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
+    "analyze:bundle": "node scripts/measure-initial-bundle.mjs --max-kb=200",
     "prepare": "husky"
   },
   "dependencies": {

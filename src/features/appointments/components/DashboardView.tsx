@@ -1,4 +1,3 @@
-import { format, parseISO } from "date-fns";
 import { CalendarClock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,6 +8,7 @@ import type {
   Service,
 } from "@/features/appointments/types/appointment";
 import { StatsCards } from "@/features/appointments/components/StatsCards";
+import { formatDateKey, getLocalDateKey } from "@/lib/dateUtils";
 
 interface DashboardViewProps {
   appointments: Appointment[];
@@ -75,7 +75,7 @@ export function DashboardView({
     );
   }
 
-  const today = format(new Date(), "yyyy-MM-dd");
+  const today = getLocalDateKey();
   const todayAppointments = appointments
     .filter(
       (appointment) =>
@@ -145,7 +145,7 @@ export function DashboardView({
                     {professionalsById.get(appointment.professionalId) ??
                       "Profesional"}
                     {" · "}
-                    {format(parseISO(appointment.date), "dd/MM/yyyy")}
+                    {formatDateKey(appointment.date)}
                   </p>
                 </div>
                 <Badge variant={statusVariants[appointment.status]}>
