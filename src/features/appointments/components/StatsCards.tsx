@@ -1,9 +1,9 @@
-import { format } from "date-fns";
 import { CheckCircle2, Clock3, DollarSign, Users } from "lucide-react";
 import type {
   Appointment,
   Service,
 } from "@/features/appointments/types/appointment";
+import { getLocalDateKey } from "@/lib/dateUtils";
 
 interface StatsCardsProps {
   appointments: Appointment[];
@@ -11,7 +11,7 @@ interface StatsCardsProps {
 }
 
 export function StatsCards({ appointments, services }: StatsCardsProps) {
-  const today = format(new Date(), "yyyy-MM-dd");
+  const today = getLocalDateKey();
   const todayAppointments = appointments.filter(
     (appointment) =>
       appointment.date === today && appointment.status !== "cancelled",

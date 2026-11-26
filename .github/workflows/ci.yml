@@ -34,8 +34,11 @@ jobs:
       - name: Instalar Chromium para Playwright
         run: npx playwright install --with-deps chromium
 
-      - name: Ejecutar pruebas E2E
-        run: npm run test:e2e
+      - name: Crear build de producción
+        run: npm run build
+
+      - name: Medir el bundle inicial gzip
+        run: npm run analyze:bundle
 
       - name: Guardar reporte de cobertura
         uses: actions/upload-artifact@v4
@@ -43,6 +46,9 @@ jobs:
           name: vitest-coverage
           path: coverage/
           if-no-files-found: error
+
+      - name: Ejecutar pruebas E2E
+        run: npm run test:e2e
 
       - name: Guardar evidencia E2E si falla
         if: failure()
@@ -53,6 +59,3 @@ jobs:
             playwright-report/
             test-results/
           if-no-files-found: ignore
-
-      - name: Crear build de producción
-        run: npm run build
