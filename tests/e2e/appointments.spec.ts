@@ -70,3 +70,30 @@ test("crea una cita y la muestra en la lista de Citas", async ({ page }) => {
   await page.getByRole("button", { name: "Citas y turnos" }).click();
   await expect(page.getByRole("row", { name: /Cliente Prueba/ })).toBeVisible();
 });
+
+test("mantiene el foco dentro del modal y lo devuelve al cerrarlo con Escape", async ({
+  page,
+}) => {
+  await page.route("**/mock-api/**", (route) => route.fulfill({ json: [] }));
+
+  await page.goto("/");
+  const opener = page.getByRole("button", { name: "Nueva cita" });
+  await opener.click();
+
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
+  await expect(page.getByLabel("Nombre de la clienta")).toBeFocused();
+
+  for (let tab = 0; tab < 20; tab += 1) {
+    await page.keyboard.press("Tab");
+    expect(
+      await dialog.evaluate((element) =>
+        element.contains(document.activeElement),
+      ),
+    ).toBe(true);
+  }
+
+  await page.keyboard.press("Escape");
+  await expect(dialog).not.toBeVisible();
+  await expect(opener).toBeFocused();
+});

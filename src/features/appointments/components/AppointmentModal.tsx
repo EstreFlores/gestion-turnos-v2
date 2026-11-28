@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
-import { useEffect, useMemo, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useRef, useSyncExternalStore } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import {
   Dialog,
@@ -49,6 +49,7 @@ export function AppointmentModal({
   onClose,
   onSave,
 }: AppointmentModalProps) {
+  const openerRef = useRef<HTMLElement | null>(null);
   const defaultValues = useMemo<AppointmentFormInput>(
     () => ({
       clientName: "",
@@ -165,7 +166,19 @@ export function AppointmentModal({
         if (!nextOpen) onClose();
       }}
     >
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+      <DialogContent
+        className="max-h-[90vh] overflow-y-auto sm:max-w-2xl"
+        onOpenAutoFocus={() => {
+          openerRef.current =
+            document.activeElement instanceof HTMLElement
+              ? document.activeElement
+              : null;
+        }}
+        onCloseAutoFocus={(event) => {
+          event.preventDefault();
+          openerRef.current?.focus();
+        }}
+      >
         <DialogHeader>
           <DialogTitle>
             {appointment ? "Editar cita" : "Nueva cita"}
